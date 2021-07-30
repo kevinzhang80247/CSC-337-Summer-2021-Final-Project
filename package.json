@@ -1,0 +1,22 @@
+{
+  "name": "csc-337-final-kevinzhang-spencerwollard",
+  "version": "1.0.0",
+  "description": "Final Project",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevinzhang80247/CSC-337-Summer-2021-Final-Project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kevinzhang80247/CSC-337-Summer-2021-Final-Project/issues"
+  },
+  "homepage": "https://github.com/kevinzhang80247/CSC-337-Summer-2021-Final-Project#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
