@@ -113,7 +113,7 @@ const GameStateModel = mongoose.model('gamestate', GameStateSchema);
 // but we also need to store the game id of any individual user
 // furthermore, guest players must be usable, without recording to our database.
 function createUser(username, password){
-    mongoose.
+    if(UserModel.findOne())
 }
 
 function getUserByName(username){
