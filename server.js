@@ -28,11 +28,12 @@ function GameState(IsPlaying, IsFinished, GameBoard, PlayerScore, ComputerScore,
     this.playerScore = PlayerScore;
     this.computerScore = ComputerScore;
     this.winner = Winner;
-};
+}
+
 function SessionState(Username){
-    this.loggedIn = LoggedIn,
-    this.username = Username
-};
+    this.loggedIn = LoggedIn;
+    this.username = Username;
+}
 
 function ScoreboardEntry(username, score){
     this.username = username;
@@ -47,6 +48,11 @@ function Board(){
         this.array[i] = [];
         this.array[i].length = 8;
     }
+}
+
+function Piece(){
+    this.owner = null;
+    this.king = false;
 }
 
 // serverside only
