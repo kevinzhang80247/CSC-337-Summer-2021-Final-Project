@@ -45,8 +45,13 @@ function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, Pl
 }
 
 function SessionState(Username){
-    this.loggedIn = LoggedIn;
-    this.username = Username;
+    if(Username == undefined){
+        this.loggedIn = false;
+    }
+    else{
+        this.loggedIn = true;
+        this.userName = Username;
+    }
 }
 
 function ScoreboardEntry(username, score){
@@ -109,37 +114,6 @@ const GameStateModel = mongoose.model('gamestate', GameStateSchema);
 
 //// ----- helpers and processing: users and sessions -----
 
-// for users, a username/password is sufficient
-// but we also need to store the game id of any individual user
-// furthermore, guest players must be usable, without recording to our database.
-function createUser(username, password){
-    if(UserModel.findOne())
-}
-
-function getUserByName(username){
-    
-}
-
-// returns User object on success, or null.
-function attemptLogin(username, password){
-    
-}
-
-// gets the game state for a specific user
-function getGameStateByName(username){
-
-}
-
-// increments a user's score by this much
-function incrementScoreByName(username, score){
-
-}
-
-// gets a list of top scoring users
-function getHighScoreList(amount){
-    
-}
-
 //// ----- helpers and processing: checkers -----
 // perform a single AI 'tick' on a game state
 function aiMove(gamestate){
@@ -181,12 +155,34 @@ function king(piece){
 
 // GET: session state
 server.get("/site_api/session", (req, res) => {
-    
+    if(req.session.username == undefined){
+        res.json(new SessionState(undefined));
+    }
+    else{
+        res.json(new SessionState(req.session.username));
+    }
 })
 
 // GET: game state
 server.get("/site_api/game", (req, res) => {
-    
+    if(req.session.username == undefined){
+        res.json(req.session.gameState);
+    }
+    else{
+        let gameid = undefined;
+        let user = await UserModel.findOne({username: req.session.username}).exec();
+        if(user == undefined || user.activegame == undefined){
+            res.json(undefined);
+        }
+        gameid = user.activegame
+        let game = await GameStateModel.findOne({_id: gameid});
+        if(game == undefined){
+            res.json(undefined);
+        }
+        else{
+            res.json(game);
+        }
+    }
 })
 
 // POST: attempt login
