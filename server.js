@@ -54,11 +54,6 @@ function SessionState(Username){
     }
 }
 
-function ScoreboardEntry(username, score){
-    this.username = username;
-    this.score = score;
-}
-
 // responses from get/post functions
 function Success(message){
     this.errored = false;
@@ -91,7 +86,7 @@ function Piece(){
 function User(username, password){
     this.username = username;
     this.password = password;
-    this.totalScore = 0;
+    this.scores = [];
 }
 
 //// ----- database "schema" ----- 
@@ -106,8 +101,20 @@ function User(username, password){
 
 // in mongoose, _id is uid.
 
-const UserSchema = new mongoose.Schema({username: mongoose.Schema.Types.String, password: mongoose.Schema.Types.String, activegame: mongoose.Schema.Types.ObjectId, totalScore: mongoose.Schema.Types.Number});
-const GameStateSchema = new mongoose.Schema({board: mongoose.Schema.Types.Mixed, finished: mongoose.Schema.Types.Boolean, playerScore: mongoose.Schema.Types.Number, computerScore: mongoose.Schema.Types.Number, player: mongoose.Schema.Types.ObjectId});
+const UserSchema = new mongoose.Schema({
+    username: mongoose.Schema.Types.String,
+    password: mongoose.Schema.Types.String,
+    activegame: mongoose.Schema.Types.ObjectId,
+    scores: [Number]
+});
+
+const GameStateSchema = new mongoose.Schema({
+    board: mongoose.Schema.Types.Mixed,
+    finished: mongoose.Schema.Types.Boolean,
+    playerScore: mongoose.Schema.Types.Number,
+    computerScore: mongoose.Schema.Types.Number,
+    player: mongoose.Schema.Types.ObjectId
+});
 
 const UserModel = mongoose.model('user', UserSchema);
 const GameStateModel = mongoose.model('gamestate', GameStateSchema);
