@@ -43,8 +43,6 @@ Return:  None.
 function updateUsers(){
   let username = $('#in3').val();
   if (username == 'admin101'){
-    finalusername = 'boss';
-    alert('Hello Mate');
     location = 'file:///C:/Users/Spencer/Desktop/CSC%20337/Final%20Project/public_html/board.html';
     return;
   }
@@ -430,13 +428,39 @@ function loadGame2(loaded){
   loadGame3(loaded);
 }
 
+
+function getScores(){
+  $.ajax({
+    url: '/lastGameState',
+    method: 'GET',
+    success: function(result){
+      document.getElementById('s1').innerHTML = result[0];
+      document.getElementById('s2').innerHTML = result[1];
+      document.getElementById('s3').innerHTML = result[2];
+      document.getElementById('s4').innerHTML = result[3];
+      document.getElementById('s5').innerHTML = result[4];
+      return;
+    }
+  })
+  return;
+}
+
+
 function loadGame(){
   $.ajax({
     url: '/lastGameState',
     method: 'GET',
     success: function(result){
-      console.log(result);
-      loadGame2(result);
+      document.getElementById('welcome').innerHTML = 'Welcome ' + result[1];
+      document.getElementById('personalScores').innerHTML = 'Your High Score: ' + result[2];
+      document.getElementById('player1').innerHTML = 'Player1 Score: ' + result[3] * 5;
+      document.getElementById('player2').innerHTML = 'Player2 Score: ' + result[4] * 5;
+      document.getElementById('curAction').innerHTML = '';
+      getScores();
+      loadGame2(result[0]);
+      curSelect = '';
+      turn = result[5];
+      finalusername = result[1];
       return;
     }
   })
@@ -468,26 +492,18 @@ function aIMove(){
     url: '/AI_move/',
     method: 'GET',
     success: function(result){
-      if (result[0] == true){
-        console.log('Game Over');
-        document.getElementById('curAction').innerHTML = 'Game Over';
-        document.getElementById('player1').innerHTML = 'Player1 Score: ' + result[1] * 5;
-        document.getElementById('player2').innerHTML = 'Player2 Score: ' + result[2] * 5;
-        selected = false;
-        curSelect = '';
-        return;
-      }else{
-        document.getElementById('player1').innerHTML = result[1] * 5;
-        document.getElementById('player2').innerHTML = result[2] * 5;
-        loadGame2(result[3]);
-        if(turn == 'black'){
-          aIMove();
-          return;
-        }
-        return;
+      document.getElementById('player1').innerHTML = 'Player1 Score: ' + result[1] * 5;
+      document.getElementById('player2').innerHTML = 'Player2 Score: ' + result[2] * 5;
+      document.getElementById('curAction').innerHTML = "You're move";
+      selected = false;
+      curSelect = '';
+      loadGame2(result[0]);
+      nextTurn();
+      return;
       }
     }
   })
+  return;
 }
 
 function nextTurn(){
