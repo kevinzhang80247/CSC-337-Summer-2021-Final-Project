@@ -8,7 +8,7 @@
 // config is an object. access via config['key'];
 const config = {
     port: 6192,
-    mongodb: "mongodb://127.0.0.1:27017"
+    mongodb: "mongodb://127.0.0.1:27017/CSC337Final"
 };
 
 //// ----- requires/imports -----
@@ -20,9 +20,18 @@ const bodyParserMiddleware = require('body-parser');
 const mongoose = require('mongoose');
 
 //// ----- instantiate server and db -----
+// server
 const server = express();
 server.use(sessionMiddleware({secret: 'ourSecret'}));
 server.use(bodyParserMiddleware());
+
+// db
+mongoose.connect(config.mongodb);
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, "Could not establish database connection."));
+db.once('open', () => {
+    console.log("Connection established to database.");
+});
 
 //// ----- object defines, constructors -----
 // client-facing objects: these are serialized directly to the client.
@@ -104,7 +113,7 @@ const GameStateModel = mongoose.model('gamestate', GameStateSchema);
 // but we also need to store the game id of any individual user
 // furthermore, guest players must be usable, without recording to our database.
 function createUser(username, password){
-
+    mongoose.
 }
 
 function getUserByName(username){

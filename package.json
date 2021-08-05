@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/kevinzhang80247/CSC-337-Summer-2021-Final-Project#readme",
   "devDependencies": {
+    "eslint": "^7.32.0",
     "nodemon": "^2.0.12"
   },
   "dependencies": {
