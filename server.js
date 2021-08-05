@@ -180,11 +180,13 @@ server.get("/site_api/game", (req, res) => {
         let user = await UserModel.findOne({username: req.session.username}).exec();
         if(user == undefined || user.activegame == undefined){
             res.json(undefined);
+            return;
         }
         gameid = user.activegame
         let game = await GameStateModel.findOne({_id: gameid});
         if(game == undefined){
             res.json(undefined);
+            return;
         }
         else{
             res.json(game);
@@ -197,15 +199,28 @@ server.post("/site_api/login", (req, res) =>{
 
 })
 
-// GET: highscore rankings
+// GET: high scores for ourselves.
 server.get("/site_api/scoreboard", (req, res) => {
-    const max = 30;     // default maximum number of users to get
-
+    const max = 5;     // default maximum number of users to get
+    if(req.session.username == undefined){
+        res.json(new Error("Not logged in."));
+        return;
+    }
 })
 
 // POST: account creation
 server.post("/site_api/create_account", (req, res) =>{
-    
+    let username = 
+    let password = 
+    let activegame = 
+    let existing = await UserModel.findOne({username: username}).exec();
+    if(existing != undefined){
+        res.json(new Error("Username already exists."));
+        return;
+    }
+    UserModel.create({username: username, password: password, activegame: activegame, scores: []});
+    req.session.username = username;
+    res.json(new Success("User created."));
 })
 
 // POST: game move
