@@ -43,8 +43,6 @@ Return:  None.
 function updateUsers(){
   let username = $('#in3').val();
   if (username == 'admin101'){
-    finalusername = 'boss';
-    alert('Hello Mate');
     location = 'file:///C:/Users/Spencer/Desktop/CSC%20337/Final%20Project/public_html/board.html';
     return;
   }
