@@ -1,9 +1,175 @@
 body{
-  background-image:url('img/table-pic.jpg');
+  background-image: url('table-pic.jpg');
   background-repeat: no-repeat;
+  background-position:center;
   background-attachment: fixed;
-  background-size: cover;
+  background-size:cover;
 }
+
+#accountPanel{
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  right: auto;
+  bottom: auto;
+  width: 200px;
+  height: 60px;
+  border: solid;
+  border-color: gray;
+  border-width: 2px;
+  background-color: darkgoldenrod;
+}
+
+#usernameRender{
+  display: inline;
+}
+
+#accountText{
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  width: auto;
+  height: 30px;
+  text-align: center;
+}
+
+#registerButton{
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  width: 90px;
+}
+
+#loginButton{
+  position: absolute;
+  bottom: 5px;
+  left: 105px;
+  width: 90px;
+}
+
+#chessboard{
+  position: fixed;
+  top: 20%;
+  bottom: 20%;
+  height: 60%;
+  width: 60%;
+  max-width: 750px;
+  max-height: 750px;
+  margin-left: -375px;
+  left: 50%;
+  right: auto;
+  border: solid;
+  border-color: darkgoldenrod;
+  border-width: 2px;
+}
+
+#scorepanel{
+  position: fixed;
+  left: 25px;
+  width: 200px;
+  top: 20%;
+  bottom: auto;
+  height: 60%;
+  border: solid;
+  border-color: red;
+  border-width: 2px;
+  background-color: rgba(0.3, 0.3, 0.3, 0.8);
+}
+
+#gamepanel{
+  position: fixed;
+  right: 25px;
+  width: 200px;
+  top: 20%;
+  bottom: auto;
+  height: 60%;
+  border: solid;
+  border-color: darkblue;
+  border-width: 2px;
+  background-color: rgba(0.3, 0.3, 0.3, 0.8);
+}
+
+#controlpanel{
+  position: absolute;
+  top: 100%;
+  margin-top: 25px;
+  width: 100%;
+  border: solid;
+  height: 50px;
+  border-color: darkgreen;
+  border-width: 2px;
+  background-color: rgba(0.3, 0.3, 0.3, 0.8);
+}
+
+/* Modal begin */
+
+.modal{
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0); /* Compatibility */
+  background-color: rgba(0, 0, 0, 0.4);
+  animation-name: modalbganimation;
+  animation-duration: 0.3s;
+}
+
+.modalContent{
+  background-color: rgb(50,75,75);
+  margin: 10% auto;
+  padding: 20px;
+  border: solid;
+  border-width: 2px;
+  border-color: darkgoldenrod;
+  width: 500px;
+  height: 500px;
+  animation-name: modalanimation;
+  animation-duration: 0.4s;
+}
+
+.modalTitle{
+  padding-left: 3px;
+  padding-right: 3px;
+  padding-top: 14px;
+  background-color: darkgoldenrod;
+}
+
+.modalInner{
+  
+}
+
+#accountModalClose{
+  
+}
+
+#accountModal{
+  
+}
+
+#accountModalInner{
+
+}
+
+@keyframes modalanimation {
+  from {opacity: 0}
+  to {opacity: 1}
+}
+
+@keyframes modalbganimation {
+  from {opacity: 0}
+  to {opacity: 0.4}
+}
+
+
+/* Modal end */
+
 
 #box1{
   text-align:center;

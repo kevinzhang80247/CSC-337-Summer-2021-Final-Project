@@ -7,27 +7,43 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Chess Chess Chess</title>
+		<title>Interstellar Chess</title>
 		<link rel="stylesheet" type="text/css"
 				       href="style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="script.js"></script>
+    <script src="index.js"></script>
 		<meta charset="utf-8">
 	</head>
   <body>
-    <div id='box1'>
-      <h1>Chess Chess Chess</h1>
-      <br><br>
-      <br><br>
-      <h1>Login</h1>
-      <br><br>
-      <label>Username:  <input id="in1" type="text" name="Username"></label>
-      <br><br>
-      <label>Password:  <input id="in2" type="text" name="Password"></label>
-      <br><br>
-      <input onclick="checkLogin()" id="final1" type="button" value="Login">
-      <br><br>
-      <input onclick="createAccount()" id="final2" type="button" value="Create Account">
+    <div id='accountModal' class='modal'>
+      <div id='accountModalContent' class='modalContent'>
+        <div id='accountModalTitle' class='modalTitle'>
+
+        </div>
+        <div id='accountModalInner' class='modalInner'>
+          
+        </div>
+      </div>
     </div>
+    <div id='accountPanel'>
+      <div id='accountText'>
+        Welcome, <p id='usernameRender'>Guest</p>!<br>
+      </div>
+      <button id='registerButton'>Register</button>
+      <button id='loginButton'>Login</button>
+    </div>
+    <div id='chessboard'>
+      test1
+      <div id='controlpanel'>
+        test4
+      </div>
+    </div>
+    <div id='scorepanel'>
+      test2
+    </div>
+    <div id='gamepanel'>
+      test3
+    </div>
+
   </body>
 </html>
