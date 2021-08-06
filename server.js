@@ -222,14 +222,45 @@ function checkVictory(state){
     }
 }
 
-// lists valid 3-tuples of coordinates a piece can move to, as [x, y, captures]
-function validMoves(piece){
+// automatic victory check function
+function autoVictory(state){
+    let returned = checkVictory(state);
+    if(returned != null){
+        state.winner = returned;
+        state.isFinished = true;
+        state.lastAction = state.winner? "You won!" : "You lost!";
+    }
+    return returned != null;
+}
 
+// user move function
+function user_move(state, oldx, oldy, newx, newy){
+
+}
+
+// lists valid 3-tuples of coordinates a piece can move to, as [x, y, [piecesToCapture]]
+function validMoves(state, piece){
+    
+}
+
+// returns undefined, true, or false if no piece, player piece, or computer piece at pos
+function pieceAt(state, x, y){
+    return state.board[x][y]? state.board[x][y].owner : undefined
+}
+
+// returns undefined or capturedpiece for a jump. only direct 1-jumps!
+function checkJump(state, piece, newx, newy){
+
+}
+
+// returns true/false for a direct move
+function checkDirectMove(state, piece, newx, newy){
+    
 }
 
 // moves a piece capturing all pieces along the way. returns false for fail, returns number of captures otherwise.
 function move(piece, x, y){
-
+    
 }
 
 // captures a piece
@@ -249,16 +280,49 @@ function king(piece){
     piece.king = true;
 }
 
+async function get_state_from_request(req){
+    if(req.session.username == undefined){
+        return req.session.gameState;
+    }
+    let user = await UserModel.findOne({username: req.session.username});
+    if(user == undefined){
+        return req.session.gameState;
+    }
+    let stateid = user.activegame;
+    if(stateid == undefined){
+        return req.session.gameState;
+    }
+    return await GameStateModel.findOne({_id: stateid});
+}
+
 async function handle_move_piece(req, res){
     // get state
-    
+    let state = get_state_from_request(req);
+    if(!state){
+        res.send(new Fail("No gamestate detected; Start a new game."));
+        return;
+    }
     // move piece
-
+    if(!user_move(state, req.body.oldx, req.body.oldy, req.body.newx, req.body.newy)){
+        res.send(new Fail("Invalid move."));
+        return;
+    }
     // check victory
-    
+    if(autoVictory(state)){
+        saveGameState(state)
+        res.send(new Success("Game concluded."));
+        return;
+    }
     // ai move
-
+    aiMove(state);
     // check victory
+    if(autoVictory(state)){
+        saveGameState(state)
+        res.send(new Success("Game concluded."));
+        return;
+    }
+    saveGameState(state)
+    res.send(new Success("Move complete; update pending."));
 }
 
 async function handle_new_game(req, res){
