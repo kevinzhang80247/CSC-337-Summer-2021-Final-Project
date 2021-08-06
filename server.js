@@ -14,7 +14,8 @@ const config = {
 //// ----- requires/imports -----
 // express server
 const express = require('express');
-const sessionMiddleware = require('express-sessions');
+const sessionMiddleware = require('express-session');
+const cookieMiddleware = require('cookie-parser');
 const bodyParserMiddleware = require('body-parser');
 // mongoose
 const mongoose = require('mongoose');
@@ -22,8 +23,14 @@ const mongoose = require('mongoose');
 //// ----- instantiate server and db -----
 // server
 const server = express();
-server.use(sessionMiddleware({secret: 'ourSecret'}));
-server.use(bodyParserMiddleware());
+server.use(cookieMiddleware());
+server.use(sessionMiddleware({
+    secret: 'ourSecret',
+    resave: false,
+    saveUninitialized: true
+}));
+server.use(express.json());
+server.use(express.urlencoded());
 
 // db
 mongoose.connect(config.mongodb);
@@ -159,6 +166,10 @@ function king(piece){
     
 }
 
+async function handle_move_piece(req, res){
+    
+}
+
 //// ----- express setup and bindings -----
 
 // GET: session state
@@ -177,21 +188,16 @@ server.get("/site_api/game", (req, res) => {
         res.json(req.session.gameState);
     }
     else{
-        let gameid = undefined;
-        let user = await UserModel.findOne({username: req.session.username}).exec();
-        if(user == undefined || user.activegame == undefined){
-            res.json(undefined);
-            return;
-        }
-        gameid = user.activegame
-        let game = await GameStateModel.findOne({_id: gameid});
-        if(game == undefined){
-            res.json(undefined);
-            return;
-        }
-        else{
-            res.json(game);
-        }
+        UserModel.findOne({username: req.session.username}).then((user) => {
+            if(user == undefined || user.activegame == undefined){
+                res.json(undefined);
+                return;
+            }
+            gameid = user.activegame;
+            GameStateModel.findOne({_id: gameid}).then((game) => {
+                res.json(game);
+            });
+        });
     }
 })
 
@@ -199,14 +205,15 @@ server.get("/site_api/game", (req, res) => {
 server.post("/site_api/login", (req, res) =>{
     let username = req.body.username;
     let password = req.body.password;
-    let account = await UserModel.findOne({username: username, password: password}).exec();
-    if(account == undefined){
-        res.json(new Error("Invalid username or password."));
-        return;
-    }
-    req.session.username = username;
-    res.json(new Success("Successfully logged in."));
-})
+    UserModel.findOne({username: username, password: password}).then((user) => {
+        if(user == undefined){
+            res.json(new Error("Invalid username or password."));
+            return;
+        }
+        req.session.username = username;
+        req.json(new Success("Successfully logged in."));
+    });
+});
 
 // GET: high scores for ourselves.
 server.get("/site_api/scoreboard", (req, res) => {
@@ -215,31 +222,42 @@ server.get("/site_api/scoreboard", (req, res) => {
         res.json(new Error("Not logged in."));
         return;
     }
+    UserModel.findOne({username: username, password: password}).then((user) => {
+        
+    })
 })
 
 // POST: account creation
 server.post("/site_api/create_account", (req, res) =>{
     let username = req.body.username;
-    let password = req.body.password;
-    let activegame = undefined;
-    if(req.session.gameState != undefined){
-        activegame = req.session.gameState.id;
-    }
-    let existing = await UserModel.findOne({username: username}).exec();
-    if(existing != undefined){
-        res.json(new Error("Username already exists."));
-        return;
-    }
-    UserModel.create({username: username, password: password, activegame: activegame, scores: []});
-    req.session.username = username;
-    res.json(new Success("User created."));
+    UserModel.findOne({username: username}).then((user) => {
+        if(user != undefined){
+            res.json(new Error("Username already exists."));
+            return;
+        }
+        let password = req.body.password;
+        if(username.length == 0){
+            res.json(new Error("Username cannot be empty."));
+            return;
+        }
+        if(password.length == 0){
+            res.json(new Error("Password cannot be empty."));
+            return;
+        }
+        let activegame = req.session.gameState == undefined? undefined : req.session.gameState.id;
+        UserModel.create({username: username, password: password, activegame: activegame, score: []});
+        req.session.username = username;
+        res.json(new Success("User created."));
+    });
 })
 
 // POST: game move
 // input: x1, y1, x2, y2
 // if successful, the client should request game state again.
 server.post("/site_api/move_piece", (req, res) =>{
-    
+    handle_move_piece(req, res);
 })
 
+//// ----- finalization ----
+server.listen(config.port, () => console.log("Server running on port " + config.port));
 
