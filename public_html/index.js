@@ -41,6 +41,7 @@ function RenderScores(){
 }
 
 function RenderBoard(){
+  console.debug('rendering board');
   let boardInner = document.querySelector('#chessboardInner');
   while(boardInner.firstChild){
     boardInner.removeChild(boardInner.lastChild);
@@ -66,6 +67,7 @@ function RenderBoard(){
     }
     alternate = !alternate;
   }
+  console.debug('board render finished');
 }
 
 function RenderPieceIntoTile(x, y, tile){

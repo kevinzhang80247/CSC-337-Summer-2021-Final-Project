@@ -35,13 +35,14 @@ db.once('open', () => {
 
 //// ----- object defines, constructors -----
 // client-facing objects: these are serialized directly to the client.
-function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, Player){
+function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, Player, _id){
     this.isFinished = IsFinished;
     this.board = GameBoard;
     this.playerScore = PlayerScore;
     this.computerScore = ComputerScore;
     this.winner = Winner;
-    this.palyer = Player;
+    this.player = Player;
+    this.id = _id;
 }
 
 function SessionState(Username){
@@ -196,7 +197,15 @@ server.get("/site_api/game", (req, res) => {
 
 // POST: attempt login
 server.post("/site_api/login", (req, res) =>{
-
+    let username = req.body.username;
+    let password = req.body.password;
+    let account = await UserModel.findOne({username: username, password: password}).exec();
+    if(account == undefined){
+        res.json(new Error("Invalid username or password."));
+        return;
+    }
+    req.session.username = username;
+    res.json(new Success("Successfully logged in."));
 })
 
 // GET: high scores for ourselves.
@@ -210,9 +219,12 @@ server.get("/site_api/scoreboard", (req, res) => {
 
 // POST: account creation
 server.post("/site_api/create_account", (req, res) =>{
-    let username = 
-    let password = 
-    let activegame = 
+    let username = req.body.username;
+    let password = req.body.password;
+    let activegame = undefined;
+    if(req.session.gameState != undefined){
+        activegame = req.session.gameState.id;
+    }
     let existing = await UserModel.findOne({username: username}).exec();
     if(existing != undefined){
         res.json(new Error("Username already exists."));
