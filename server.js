@@ -54,13 +54,13 @@ db.once('open', () => {
 
 //// ----- object defines, constructors -----
 // client-facing objects: these are serialized directly to the client.
-function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, Player, _id){
+function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, Player, LastAction, _id){
     this.isFinished = IsFinished;
     this.board = GameBoard;
     this.playerScore = PlayerScore;
     this.computerScore = ComputerScore;
     this.winner = Winner;
-    this.player = Player;
+    this.lastAction = LastAction;
     this.id = _id;
 }
 
@@ -86,13 +86,49 @@ function Fail(message){
 
 // shared objects
 // board coordinates are x-y from lower left corner.
-function Board(){
-    this.array = [];
-    this.array.length = 8;
-    for(let i = 0; i < this.array.length; i++){
-        this.array[i] = [];
-        this.array[i].length = 8;
+function Board(startingPieces = true){
+    let array = [];
+    array.length = 8;
+    for(let i = 0; i < array.length; i++){
+        array[i] = [];
+        array[i].length = 8;
     }
+    if(startingPieces){
+        // make pieces
+        let alternate = false;
+        // player pieces on bottom
+        for(let y = 1; y <= 3; y++){
+            for(let x = 1; x <= 8; x++){
+                if(!alternate){
+                    alternate = !alternate;
+                    continue;
+                }
+                alternate = !alternate;
+                let piece = new Piece();
+                piece.owner = true;
+                piece.x = x;
+                piece.y = y;
+                array[x - 1][y - 1] = piece;
+            }
+        }
+        alternate = true;
+        // computer pieces on top
+        for(let y = 1; y <= 3; y++){
+            for(let x = 1; x <= 8; x++){
+                if(!alternate){
+                    alternate = !alternate;
+                    continue;
+                }
+                alternate = !alternate;
+                let piece = new Piece();
+                piece.owner = true;
+                piece.x = x;
+                piece.y = y;
+                array[x - 1][y - 1] = piece;
+            }
+        }
+    }
+    return array;
 }
 
 function Piece(){
@@ -133,7 +169,8 @@ const GameStateSchema = new mongoose.Schema({
     finished: mongoose.Schema.Types.Boolean,
     playerScore: mongoose.Schema.Types.Number,
     computerScore: mongoose.Schema.Types.Number,
-    player: mongoose.Schema.Types.ObjectId
+    winner: mongoose.Schema.Types.Mixed,
+    lastAction: mongoose.Schema.Types.String,
 });
 
 const UserModel = mongoose.model('user', UserSchema);
@@ -149,8 +186,9 @@ function aiMove(gamestate){
 
 // instantiate a new game
 // returns the gamestate
-function newGame(){
-
+async function newGame(){
+    let obj = await GameStateModel.create({finished: false, board: Board(), playerScore: 0, computerScore: 0, undefined, lastAction: ""});
+    return new GameState(obj.finished, obj.board, obj.playerScore, obj.computerScore, obj.winner, obj.lastAction, obj._id);
 }
 
 // checks for victory. returns null, true for player, or false for computer.
@@ -169,13 +207,20 @@ function move(piece, x, y){
 }
 
 // captures a piece
-function capture(piece){
-    
+function capture(gamestate, piece){
+    gamestate.board[piece.x][piece.y] = undefined;
+    if(piece.owner){
+        gamestate.computerScore++;
+    }
+    else{
+        gamestate.playerScore++;
+    }
+    gamestate.last_action = piece.owner? "Your piece has been captured!" : "You captured a piece!";
 }
 
 // kings a piece
 function king(piece){
-    
+    piece.king = true;
 }
 
 async function handle_move_piece(req, res){
@@ -183,7 +228,21 @@ async function handle_move_piece(req, res){
 }
 
 async function handle_new_game(req, res){
-    
+    // first, create a new state
+    let state = await newGame();
+    state.lastAction = "Game started!";
+    await saveGameState(state);
+    // save as necessary
+    req.session.gameState = state;
+    req.session.save();
+    if(req.session.username){
+        UserModel.update({username: req.session.username}, {activegame: state.id});
+    }
+    res.send(new Success("New game started."));
+}
+
+async function saveGameState(state){
+    GameStateModel.updateOne({_id: state.id}, {isFinished: state.isFinished, board: state.board, playerScore: state.playerScore, computerScore: state.computerScore, winner: state.winner, lastAction: state.lastAction});
 }
 
 //// ----- express setup and bindings -----

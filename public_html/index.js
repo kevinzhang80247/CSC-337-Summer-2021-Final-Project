@@ -9,6 +9,7 @@ Purpose:  See server.js for details.
 const server = 'http://localhost:6192';
 
 let gameState = undefined;
+let sessionData = undefined;
 let modalOpened = false;
 
 window.addEventListener('load', siteInit);
@@ -25,7 +26,9 @@ function siteInit(){
 }
 
 function OnLogin(){
+  console.debug("rerendering for login");
   CloseModal();
+  UpdateState();
   RenderUserData();
   RenderScores();
   RenderBoard();
@@ -34,10 +37,13 @@ function OnLogin(){
 }
 
 function OnMove(){
-  RenderBoard();
-  RenderScores();
-  RenderStatus();
-  RenderPanel();
+  console.debug("rerendering for movement");
+  UpdateState().then(() => {
+    RenderBoard();
+    RenderScores();
+    RenderStatus();
+    RenderPanel();
+  });
 }
 
 function HookButtons(){
@@ -46,6 +52,7 @@ function HookButtons(){
   $('#doLoginButton').on('click', Login);
   $('#doRegisterButton').on('click', Register);
   $('#accountModalClose').on('click', CloseModal);
+  $('#newGameButton').on('click', RequestNewGame);
 }
 
 function RenderUserData(){
@@ -61,14 +68,34 @@ function RenderUserData(){
       if(data.loggedIn != false){
         name = data.userName
       }
+      sessionData = data;
       console.debug("got " + name + " ("+ JSON.stringify(data) + ")");
       $('#usernameRender').text(name);
     }
   })
 }
 
-function RenderScores(){
+async function UpdateState(){
+  await $.ajax({
+    type: "GET",
+    url: server + "/site_api/game",
+    xhrFields: {
+      withCredentials: true
+    },
+    success: (data, status) => {
+      gameState = data;
+      console.log("gamestate: " + JSON.stringify(gameState));
+    }
+  })
+}
 
+function RenderScores(){
+  if(sessionData == undefined || sessionData.loggedIn == false){
+    $('#scoreRender').html("You must be logged in to view your top scores!");
+  }
+  else{
+    
+  }
 }
 
 function RenderBoard(){
@@ -99,10 +126,15 @@ function RenderBoard(){
     alternate = !alternate;
   }
   if(gameState == undefined || gameState.isFinished == true){
+    $('#chessboardModal').css('display', 'block');
     $('#chessboardModalContent').html(
       gameState == undefined? ("Game not started.<br>Start a new game with the buttons below!") :
       ("You " + gamestate.winner? "won" : "lost" + "!<br>Start a new game with the buttons below.")
     );
+  }
+  else{
+    $('#chessboardModal').css('display', 'none');
+    RenderGameError(gameState.lastAction);
   }
   console.debug('board render finished');
 }
@@ -194,5 +226,27 @@ function AttemptMove(){
 }
 
 function RequestNewGame(){
-
+  console.debug("requesting new game");
+  $.ajax({
+    type: "GET",
+    url: server + "/site_api/new_game",
+    xhrFields:{
+      withCredentials: true
+    },
+    success: (data, status) => {
+      console.debug("Got back " + JSON.stringify(data));
+      if(data.errored == false){
+        RenderGameError("New game started.");
+        OnMove();
+      }
+      else{
+        RenderGameError(data.message);
+      }
+    }
+  })
 }
+
+function RenderGameError(msg){
+  $('#gameErrorRender').text(msg);
+}
+

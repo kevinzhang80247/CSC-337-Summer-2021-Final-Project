@@ -70,6 +70,7 @@ body{
   border: solid;
   border-color: darkgoldenrod;
   border-width: 2px;
+  z-index: 5;
 }
 
 #chessboardModal{
@@ -130,6 +131,19 @@ body{
   border-color: red;
   border-width: 2px;
   background-color: rgba(0.3, 0.3, 0.3, 0.8);
+  color: white;
+}
+
+#scoreTitle{
+  display: block;
+  text-align: center;
+  height: 100px;
+  font-size: 16px;
+}
+
+#scoreRender{
+  position: absolute;
+  top: 100px;
 }
 
 #gamepanel{
@@ -178,6 +192,48 @@ body{
   border-color: darkgreen;
   border-width: 2px;
   background-color: rgba(0.3, 0.3, 0.3, 0.8);
+  color: white;
+  z-index: 5;
+}
+
+#controlPanelHolder{
+  width: 100%;
+  height: 100%;
+}
+
+#controlPanelInner{
+  display:flex;
+  position: absolute;
+  width: 620px;
+  height: 40px;
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.controlPanelButton{
+  flex:1
+}
+
+#gameError{
+  position: absolute;
+  top: 100%;
+  margin-top: 25px;
+  width: 80%;
+  left: 10%;
+  right: auto;
+  border: solid;
+  height: 50px;
+  border-color: purple;
+  border-width: 2px;
+  background-color: rgba(0.3, 0.3, 0.3, 0.8);
+  color: white;
+  z-index: 4;
+}
+
+#gameErrorRender{
+  text-align: center;
+  font-size: 16px;
 }
 
 #accountForm li{
