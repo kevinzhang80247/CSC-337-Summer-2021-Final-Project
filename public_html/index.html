@@ -22,7 +22,20 @@
           <button id='accountModalClose'>x</button>
         </div>
         <div id='accountModalInner' class='modalInner'>
-          
+          <div id='accountForm'>
+            <ul>
+              <li>
+                <label for="usernameField">Username: </label>
+                <input type="text" id="usernameField" name="username">
+              </li>
+              <li>
+                <label for="passwordField">Password: </label>
+                <input type="password" id="passwordField" name="password">
+              </li>
+            </ul>
+          </div>
+          <div id='accountFormFeedback'>
+          </div>
           <button id='doRegisterButton'>Register</button>
           <button id='doLoginButton'>Login</button>
         </div>
@@ -36,6 +49,11 @@
       <button id='loginButton'>Login</button>
     </div>
     <div id='chessboard'>
+      <div id='chessboardModal'>
+        <div id='chessboardModalContent'>
+          Game not started.<br>Start a new game with the buttons below!
+        </div>
+      </div>
       <div id='chessboardInner'>
         
       </div>
@@ -47,7 +65,12 @@
       test2
     </div>
     <div id='gamepanel'>
-      test3
+      <div id='panelPlayerScore'>
+        Error
+      </div>
+      <div id='panelComputerScore'>
+        Error
+      </div>
     </div>
 
   </body>

@@ -6,7 +6,7 @@ Due: 8/6/2021
 Purpose:  See server.js for details.
 */
 
-const server = '127.0.0.1:6192';
+const server = 'http://localhost:6192';
 
 let gameState = undefined;
 let modalOpened = false;
@@ -24,6 +24,22 @@ function siteInit(){
   console.debug('init finished');
 }
 
+function OnLogin(){
+  CloseModal();
+  RenderUserData();
+  RenderScores();
+  RenderBoard();
+  RenderStatus();
+  RenderPanel();
+}
+
+function OnMove(){
+  RenderBoard();
+  RenderScores();
+  RenderStatus();
+  RenderPanel();
+}
+
 function HookButtons(){
   $('#loginButton').on('click', OpenModal);
   $('#registerButton').on('click', OpenModal);
@@ -33,7 +49,22 @@ function HookButtons(){
 }
 
 function RenderUserData(){
-
+  console.debug("rendering userdata");
+  $.ajax({
+    type: "GET",
+    url: server + "/site_api/session",
+    xhrFields:{
+      withCredentials: true
+    },
+    success: (data, status) => {
+      let name = "Guest";
+      if(data.loggedIn != false){
+        name = data.userName
+      }
+      console.debug("got " + name + " ("+ JSON.stringify(data) + ")");
+      $('#usernameRender').text(name);
+    }
+  })
 }
 
 function RenderScores(){
@@ -67,11 +98,19 @@ function RenderBoard(){
     }
     alternate = !alternate;
   }
+  if(gameState == undefined || gameState.isFinished == true){
+    $('#chessboardModalContent').html(
+      gameState == undefined? ("Game not started.<br>Start a new game with the buttons below!") :
+      ("You " + gamestate.winner? "won" : "lost" + "!<br>Start a new game with the buttons below.")
+    );
+  }
   console.debug('board render finished');
 }
 
 function RenderPieceIntoTile(x, y, tile){
-
+  if(gameState == undefined){
+    return;
+  }
 }
 
 function RenderPanel(){
@@ -79,7 +118,14 @@ function RenderPanel(){
 }
 
 function RenderStatus(){
-
+  let playerscore = 0;
+  let computerscore = 0;
+  if(gameState != undefined){
+    playerscore = gameState.playerScore;
+    computerscore = gameState.computerScore;
+  }
+  $('#panelPlayerScore').text("Your score: " + playerscore);
+  $('#panelComputerScore').text("Computer's score: " + computerscore);
 }
 
 function OpenModal(){
@@ -95,15 +141,48 @@ function CloseModal(){
     return;
   }
   modalOpened = false;
-   $('#accountModal').css('display', 'none');
+  $('#accountModal').css('display', 'none');
+  $('#accountFormFeedback').html("");
 }
 
 function Login(){
-
+  let username = $('#usernameField').val();
+  let password = $('#passwordField').val();
+  $.ajax({
+    type: "POST",
+    url: server + "/site_api/login",
+    data: {username: username, password: password},
+    xhrFields:{
+      withCredentials: true
+    },
+    success: (data, status) =>{
+      if(data.errored != true){
+        OnLogin();
+        return;
+      }
+      $('#accountFormFeedback').text(data.message);
+    }
+  })
 }
 
 function Register(){
-  
+  let username = $('#usernameField').val();
+  let password = $('#passwordField').val();
+  $.ajax({
+    type: "POST",
+    url: server + "/site_api/register",
+    data: {username: username, password: password},
+    xhrFields:{
+      withCredentials: true
+    },
+    success: (data, status) =>{
+      if(data.errored != true){
+        OnLogin();
+        return;
+      }
+      $('#accountFormFeedback').text(data.message);
+    }
+  })
 }
 
 function HandleClick(e){

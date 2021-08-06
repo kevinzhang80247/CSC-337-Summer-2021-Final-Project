@@ -20,6 +20,16 @@ body{
   background-color: darkgoldenrod;
 }
 
+#accountFormFeedback{
+  position: absolute;
+  bottom: 50px;
+  width: 100%;
+  height: 50px;
+  text-align: center;
+  color: red;
+  font-size: 28px;
+}
+
 #usernameRender{
   display: inline;
 }
@@ -60,6 +70,33 @@ body{
   border: solid;
   border-color: darkgoldenrod;
   border-width: 2px;
+}
+
+#chessboardModal{
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 50;
+}
+
+#chessboardModalContent{
+  position: relative;
+  display: block;
+  top: 50%;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  width: 400px;
+  height: 50px;
+  margin-left: -200px;
+  color: white;
+  font-weight: bold;
+  font-size: large;
 }
 
 .blackTile{
@@ -106,6 +143,29 @@ body{
   border-color: darkblue;
   border-width: 2px;
   background-color: rgba(0.3, 0.3, 0.3, 0.8);
+  color: white;
+}
+
+#panelPlayerScore{
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 50px;
+  padding: 16px;
+  font-size: large;
+  text-align: left;
+}
+
+#panelComputerScore{
+  position: absolute;
+  top: 50px;
+  left: 0px;
+  width: 100%;
+  height: 100px;
+  padding: 16px;
+  font-size: large;
+  text-align: left;
 }
 
 #controlpanel{
@@ -118,6 +178,36 @@ body{
   border-color: darkgreen;
   border-width: 2px;
   background-color: rgba(0.3, 0.3, 0.3, 0.8);
+}
+
+#accountForm li{
+  list-style: none;
+  list-style-type:none;
+  color: white;
+}
+
+#accountForm label{
+  width: 25%;
+}
+
+#accountForm input{
+  width: 75%;
+}
+
+#doRegisterButton{
+  position: absolute;
+  bottom: 5px;
+  left: 80px;
+  width: 80px;
+  height: 20px;
+}
+
+#doLoginButton{
+  position: absolute;
+  bottom: 5px;
+  left: 280px;
+  width: 80px;
+  height: 20px;
 }
 
 /* Modal begin */
