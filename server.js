@@ -54,7 +54,7 @@ db.once('open', () => {
 
 //// ----- object defines, constructors -----
 // client-facing objects: these are serialized directly to the client.
-function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, Player, LastAction, _id){
+function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, LastAction, _id){
     this.isFinished = IsFinished;
     this.board = GameBoard;
     this.playerScore = PlayerScore;
@@ -110,10 +110,11 @@ function Board(startingPieces = true){
                 piece.y = y;
                 array[x - 1][y - 1] = piece;
             }
+            alternate = !alternate;
         }
         alternate = true;
         // computer pieces on top
-        for(let y = 1; y <= 3; y++){
+        for(let y = 8; y >= 6; y--){
             for(let x = 1; x <= 8; x++){
                 if(!alternate){
                     alternate = !alternate;
@@ -121,11 +122,12 @@ function Board(startingPieces = true){
                 }
                 alternate = !alternate;
                 let piece = new Piece();
-                piece.owner = true;
+                piece.owner = false;
                 piece.x = x;
                 piece.y = y;
                 array[x - 1][y - 1] = piece;
             }
+            alternate = !alternate;
         }
     }
     return array;
@@ -192,8 +194,32 @@ async function newGame(){
 }
 
 // checks for victory. returns null, true for player, or false for computer.
-function checkVictory(){
-    
+function checkVictory(state){
+    let playerpieces = 0;
+    let computerpieces = 0;
+    for(let x = 0; x < 8; x++){
+        for(let y = 0; y < 8; y++){
+            let piece = state.board[x][y];
+            if(!piece){
+                continue;
+            }
+            if(piece.owner){
+                playerpieces++;
+            }
+            else{
+                computerpieces++;
+            }
+        }
+    }
+    if(!playerpieces){
+        return false;
+    }
+    else if(!computerpieces){
+        return true;
+    }
+    else{
+        return null;
+    }
 }
 
 // lists valid 3-tuples of coordinates a piece can move to, as [x, y, captures]
@@ -201,7 +227,7 @@ function validMoves(piece){
 
 }
 
-// moves a piece capturing all pieces along the way.
+// moves a piece capturing all pieces along the way. returns false for fail, returns number of captures otherwise.
 function move(piece, x, y){
 
 }
@@ -224,7 +250,15 @@ function king(piece){
 }
 
 async function handle_move_piece(req, res){
+    // get state
     
+    // move piece
+
+    // check victory
+    
+    // ai move
+
+    // check victory
 }
 
 async function handle_new_game(req, res){
@@ -236,7 +270,8 @@ async function handle_new_game(req, res){
     req.session.gameState = state;
     req.session.save();
     if(req.session.username){
-        UserModel.update({username: req.session.username}, {activegame: state.id});
+        console.log("updating existing user " + req.session.username + " activegame to " + state.id);
+        await UserModel.updateOne({username: req.session.username}, {activegame: state.id});
     }
     res.send(new Success("New game started."));
 }
@@ -272,8 +307,10 @@ server.get("/site_api/game", (req, res) => {
                 return;
             }
             gameid = user.activegame;
+            console.log("getting activegame: " + gameid);
             GameStateModel.findOne({_id: gameid}).then((game) => {
                 res.send(game);
+                console.log("sent gamestate: " + JSON.stringify(game));
                 req.session.gameState = game;
             });
         });
