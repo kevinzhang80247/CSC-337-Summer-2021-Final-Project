@@ -9,7 +9,7 @@
 	<head>
 		<title>Interstellar Chess</title>
 		<link rel="stylesheet" type="text/css"
-				       href="style.css">
+				       href="index.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="index.js"></script>
 		<meta charset="utf-8">
@@ -18,10 +18,13 @@
     <div id='accountModal' class='modal'>
       <div id='accountModalContent' class='modalContent'>
         <div id='accountModalTitle' class='modalTitle'>
-
+          Register/Login
+          <button id='accountModalClose'>x</button>
         </div>
         <div id='accountModalInner' class='modalInner'>
           
+          <button id='doRegisterButton'>Register</button>
+          <button id='doLoginButton'>Login</button>
         </div>
       </div>
     </div>
@@ -33,7 +36,9 @@
       <button id='loginButton'>Login</button>
     </div>
     <div id='chessboard'>
-      test1
+      <div id='chessboardInner'>
+        
+      </div>
       <div id='controlpanel'>
         test4
       </div>

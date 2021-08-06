@@ -52,16 +52,34 @@ body{
   position: fixed;
   top: 20%;
   bottom: 20%;
-  height: 60%;
-  width: 60%;
-  max-width: 750px;
-  max-height: 750px;
-  margin-left: -375px;
+  height: 640px;
+  width: 640px;
+  margin-left: -320px;
   left: 50%;
   right: auto;
   border: solid;
   border-color: darkgoldenrod;
   border-width: 2px;
+}
+
+.blackTile{
+  float: left;
+  width: 80px;
+  height: 80px;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.whiteTile{
+  float: left;
+  width: 80px;
+  height: 80px;
+  background-color: rgba(1, 1, 1, 0.75);
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
 }
 
 #scorepanel{
@@ -122,6 +140,8 @@ body{
 }
 
 .modalContent{
+  display: block;
+  position: fixed;
   background-color: rgb(50,75,75);
   margin: 10% auto;
   padding: 20px;
@@ -130,19 +150,47 @@ body{
   border-color: darkgoldenrod;
   width: 500px;
   height: 500px;
+  left: 50%;
+  right: auto;
+  top: 35%;
+  bottom: auto;
+  margin-left: -250px;
+  margin-top: -250px;
   animation-name: modalanimation;
   animation-duration: 0.4s;
+  z-index: 101;
 }
 
 .modalTitle{
-  padding-left: 3px;
-  padding-right: 3px;
-  padding-top: 14px;
-  background-color: darkgoldenrod;
+  display: block;
+  position: relative;
+  background-color: darkgrey;
+}
+
+#accountModalTitle{
+  height: 50px;
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: brown;
+  text-align: center;
+  font-size: xx-large;
+}
+
+#accountModalClose{
+  float: right;
+  top: 5px;
+  left: auto;
+  right: 5px;
 }
 
 .modalInner{
-  
+  display: block;
+  position: relative;
+  width: 480px;
+  height: 440px;
+  margin: 10px;
+  border: solid 3px black;
 }
 
 #accountModalClose{
@@ -157,6 +205,16 @@ body{
 
 }
 
+#doRegisterButton{
+  position: absolute;
+  bottom: 10px;
+}
+
+#doLoginButton{
+  position: absolute;
+  bottom: 10px;
+}
+
 @keyframes modalanimation {
   from {opacity: 0}
   to {opacity: 1}
@@ -169,127 +227,3 @@ body{
 
 
 /* Modal end */
-
-
-#box1{
-  text-align:center;
-  color:white;
-  font-family:Helvetica, sans-serif;
-}
-
-#box2{
-  width:50%;
-  position:fixed;
-  top:0;
-  margin-left:24%;
-  margin-top:1%;
-  text-align:center;
-  color:rgb(0, 255, 208);
-  font-family:impact;
-  font-size:100px;
-}
-
-#box3{
-  position:fixed;
-  top:0;
-  left:0;
-  margin-top:10%;
-  margin-left:5%;
-  padding:10px;
-  height:600px;
-  width:350px;
-  border:10px solid red;
-  color:rgb(0, 255, 208);
-  font-family:Comic Sans MS;
-  font-size:30px;
-}
-
-#box4{
-  position:fixed;
-  top:0;
-  right:0;
-  margin-top:10%;
-  margin-right:5%;
-  padding:10px;
-  height:600px;
-  width:350px;
-  border:10px solid red;
-  color:rgb(174, 0, 255);
-  font-family:Comic Sans MS;
-  font-size:30px;
-}
-
-#welcome{
-}
-
-.board{
-  position:fixed;
-  top:0;
-  left:0;
-  margin-top:10%;
-  margin-left:34%;
-  width:600px;
-  height:600px;
-  border:10px solid black;
-}
-
-.white{
-  width:75px;
-  height:75px;
-  background-color:white;
-  text-align:center;
-  vertical-align:middle;
-  display:table-cell;
-  float:left;
-}
-
-.brown{
-  width:75px;
-  height:75px;
-  background-color: rgb(0, 255, 208);
-  text-align:center;
-  vertical-align:middle;
-  display:table-cell;
-  float:left;
-}
-
-.redCircle{
-  height: 50px;
-  width: 50px;
-  background-color: red;
-  border-radius: 50%;
-  display: inline-block;
-  margin-top:12px;
-  color:white;
-  text-align:center;
-  line-height:45px;
-}
-
-.blackCircle{
-  height: 50px;
-  width: 50px;
-  background-color: black;
-  border-radius: 50%;
-  display: inline-block;
-  margin-top:12px;
-  color:white;
-  text-align:center;
-  line-height:45px;
-}
-
-#newGame{
-  position:fixed;
-  bottom:0;
-  margin-left:44%;
-  margin-bottom:4%;
-}
-
-#clicker1{
-  width:200px;
-  font-size:20px;
-}
-
-#clicker2{
-  width:200px;
-  font-size:20px;
-}
