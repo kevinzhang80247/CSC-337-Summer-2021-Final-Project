@@ -123,8 +123,8 @@ function Board(startingPieces = true){
                 alternate = !alternate;
                 let piece = new Piece();
                 piece.owner = false;
-                piece.x = x;
-                piece.y = y;
+                piece.x = x - 1;
+                piece.y = y - 1;
                 array[x - 1][y - 1] = piece;
             }
             alternate = !alternate;
@@ -234,17 +234,32 @@ function autoVictory(state){
 }
 
 // user move function
+// returns undefined if invalid move
+// false if success
+// true if jump
 function user_move(state, oldx, oldy, newx, newy){
-
-}
-
-// lists valid 3-tuples of coordinates a piece can move to, as [x, y, [piecesToCapture]]
-function validMoves(state, piece){
-    
+    let piece = pieceAt(oldx, oldy);
+    if(!piece){
+        state.lastAction = "Invalid piece!";
+        return undefined;
+    }
+    if(outOfBounds(newx, newy)){
+        state.lastAction = "Invalid location!";
+        return undefined;
+    }
+    let returned = move(state, piece, newx, newy);
+    if(returned == false){
+        state.lastAction = "Invalid move!";
+        return undefined;
+    }
+    return returned > 0;
 }
 
 // returns undefined, true, or false if no piece, player piece, or computer piece at pos
 function pieceAt(state, x, y){
+    if(outOfBounds(x, y)){
+        return undefined;
+    }
     return state.board[x][y]? state.board[x][y].owner : undefined
 }
 
@@ -294,13 +309,52 @@ function outOfBounds(x, y){
 }
 
 // moves a piece capturing all pieces along the way. returns false for fail, returns number of captures otherwise.
-function move(piece, x, y){
-    
+function move(state, piece, x, y){
+    if(outOfBounds(x, y)){
+        return false;
+    }
+    // ensure diagonalness
+    if(Math.abs(piece.x - x) != Math.abs(piece.y - y)){
+        return false;
+    }
+    // direct move
+    if(Math.abs(piece.x - x) == 1){
+        if(!checkDirectMove(state, piece, x, y)){
+            return false;
+        }
+        piece.x = x;
+        piece.y = y;
+        // if reaching end, king
+        if(piece.owner && piece.y == 7 || !piece.owner && piece.y == 0){
+            king(piece);
+        }
+        return 0;
+    }
+    // jump
+    else if(Math.abs(piece.x - x) == 2){
+        let captured = checkJump(state, piece, x, y);
+        if(!captured){
+            return false;
+        }
+        piece.x = x;
+        piece.y = y;
+        capture(state, captured);
+        // if reaching end, king
+        if(piece.owner && piece.y == 7 || !piece.owner && piece.y == 0){
+            king(piece);
+        }
+        return 1;
+    }
+    else{
+        return false;
+    }
 }
 
 // captures a piece
 function capture(gamestate, piece){
     gamestate.board[piece.x][piece.y] = undefined;
+    piece.x = undefined;
+    piece.y = undefined;
     if(piece.owner){
         gamestate.computerScore++;
     }
@@ -339,7 +393,8 @@ async function handle_move_piece(req, res){
         return;
     }
     // move piece
-    if(!user_move(state, req.body.oldx - 1, req.body.oldy - 1, req.body.newx - 1, req.body.newy - 1)){
+    let returned = user_move(state, req.body.oldx - 1, req.body.oldy - 1, req.body.newx - 1, req.body.newy - 1)
+    if(returned == undefined){
         res.send(new Fail("Invalid move."));
         return;
     }
@@ -347,6 +402,10 @@ async function handle_move_piece(req, res){
     if(autoVictory(state)){
         saveGameState(state)
         res.send(new Success("Game concluded."));
+        return;
+    }
+    if(!returned){
+        // true value means it's still our turn because we jumped
         return;
     }
     // ai move
