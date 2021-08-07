@@ -621,8 +621,7 @@ server.post("/site_api/register", (req, res) =>{
             res.send(new Fail("Password cannot be empty."));
             return;
         }
-        let activegame = req.session.gameState == undefined? undefined : req.session.gameState.id;
-        UserModel.create({username: username, password: password, activegame: activegame, score: []});
+        UserModel.create({username: username, password: password, activegame: undefined, score: []});
         req.session.username = username;
         res.send(new Success("User created."));
         req.session.save();
