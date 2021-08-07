@@ -20,6 +20,8 @@ const bodyParserMiddleware = require('body-parser');
 const corsMiddleware = require('cors');
 // mongoose
 const mongoose = require('mongoose');
+// dependencies
+const crypto = require('crypto');
 
 //// ----- instantiate server and db -----
 // server
@@ -165,7 +167,8 @@ const UserSchema = new mongoose.Schema({
     username: mongoose.Schema.Types.String,
     password: mongoose.Schema.Types.String,
     activegame: mongoose.Schema.Types.ObjectId,
-    scores: [Number]
+    scores: [Number],
+    salt: mongoose.Schema.Types.String
 });
 
 const GameStateSchema = new mongoose.Schema({
@@ -182,6 +185,26 @@ const UserModel = mongoose.model('user', UserSchema);
 const GameStateModel = mongoose.model('gamestate', GameStateSchema);
 
 //// ----- helpers and processing: users and sessions -----
+
+async function get_salt(username){
+    let user = await UserModel.findOne({username}).exec();
+    if(!user){
+        return undefined;
+    }
+    return user.salt;
+}
+
+async function gen_salt(){
+    let salt = crypto.randomBytes(64).toString('base64');
+    console.debug("generated salt " + salt);
+    return salt;
+}
+
+async function password_to_db(plaintext, salt){
+    let result = crypto.pbkdf2Sync(plaintext, salt, 1000, 64, 'sha512');
+    // console.debug("successfully transformed " + plaintext + " plaintext password --> " + result);
+    return result;
+}
 
 //// ----- helpers and processing: checkers -----
 // perform a single AI 'tick' on a game state
@@ -630,44 +653,57 @@ server.get("/site_api/game", (req, res) => {
 
 // POST: attempt login
 server.post("/site_api/login", (req, res) =>{
+    handle_user_login(req, res);
+});
+
+async function handle_user_login(req, res) {
     let username = req.body.username;
     let password = req.body.password;
-    UserModel.findOne({username: username, password: password}).then((user) => {
-        if(user == undefined){
-            res.send(new Fail("Invalid username or password."));
-            return;
-        }
-        req.session.username = username;
-        console.log("Recording session.");
-        console.log("Session is " + JSON.stringify(req.session));
-        res.send(new Success("Successfully logged in."));
-        req.session.save();
-    });
-});
+    let salt = await get_salt(username);
+    if(!salt || !salt.length){
+        res.send(new Fail("No such user exists."));
+        return;
+    }
+    let user = await UserModel.findOne({username: username, password: await password_to_db(password, salt)}).exec();
+    if(user == undefined){
+        res.send(new Fail("Invalid username or password."));
+        return;
+    }
+    req.session.username = username;
+    console.log("Recording session.");
+    console.log("Session is " + JSON.stringify(req.session));
+    res.send(new Success("Successfully logged in."));
+    req.session.save();
+}
 
 // POST: account creation
 server.post("/site_api/register", (req, res) =>{
-    let username = req.body.username;
-    UserModel.findOne({username: username}).then((user) => {
-        if(user != undefined){
-            res.send(new Fail("Username already exists."));
-            return;
-        }
-        let password = req.body.password;
-        if(username.length == 0){
-            res.send(new Fail("Username cannot be empty."));
-            return;
-        }
-        if(password.length == 0){
-            res.send(new Fail("Password cannot be empty."));
-            return;
-        }
-        UserModel.create({username: username, password: password, activegame: undefined, score: []});
-        req.session.username = username;
-        res.send(new Success("User created."));
-        req.session.save();
-    });
+    handle_user_register(req, res);
 })
+
+async function handle_user_register(req, res){
+    let username = req.body.username;
+    let user = await UserModel.findOne({username: username}).exec();
+    if(user != undefined){
+        res.send(new Fail("Username already exists."));
+        return;
+    }
+    let password = req.body.password;
+    if(username.length == 0){
+        res.send(new Fail("Username cannot be empty."));
+        return;
+    }
+    if(password.length == 0){
+        res.send(new Fail("Password cannot be empty."));
+        return;
+    }
+    let salt = await gen_salt();
+    let keygen = await password_to_db(password, salt);
+    UserModel.create({username: username, password: keygen, activegame: undefined, score: [], salt: salt});
+    req.session.username = username;
+    res.send(new Success("User created."));
+    req.session.save();
+}
 
 // GET: New game
 server.get("/site_api/new_game", (req, res) => {
