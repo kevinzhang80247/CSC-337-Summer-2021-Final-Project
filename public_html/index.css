@@ -139,6 +139,14 @@ body{
   position: absolute;
 }
 
+.kingmarker{
+  color: black;
+  text-align: center;
+  font-size: 32pt;
+  font-style: italic;
+  font-weight: bold;
+}
+
 .blackTile{
   float: left;
   width: 80px;

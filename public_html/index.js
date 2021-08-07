@@ -135,7 +135,7 @@ function RenderBoard(){
     $('#chessboardModal').css('display', 'block');
     $('#chessboardModalContent').html(
       gameState == undefined? ("Game not started.<br>Start a new game with the buttons below!") :
-      ("You " + gamestate.winner? "won" : "lost" + "!<br>Start a new game with the buttons below.")
+      ("You " + (gameState.winner? "won" : "lost") + "!<br>Start a new game with the buttons below.")
     );
   }
   else{
@@ -155,7 +155,12 @@ function RenderPieceIntoTile(x, y, tile){
   }
   let inner = document.createElement('div');
   inner.className = piece.owner? "piecered" : "pieceblack";
-  inner.textContent = piece.king? "K" : "";
+  if(piece.king){
+    let kingView = document.createElement('div');
+    kingView.className = "kingmarker";
+    kingView.innerText = "K";
+    inner.appendChild(kingView);
+  }
   tile.appendChild(inner);
 }
 
