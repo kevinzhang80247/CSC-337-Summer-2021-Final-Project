@@ -182,8 +182,52 @@ const GameStateModel = mongoose.model('gamestate', GameStateSchema);
 
 //// ----- helpers and processing: checkers -----
 // perform a single AI 'tick' on a game state
-function aiMove(gamestate){
-
+function aiMove(state){
+    let pieces = [];
+    // gather all our pieces
+    for(let y = 0; y < 8; y++){
+        for(let x = 0; x < 8; x++){
+            if(pieceAt(state, x, y) == false){
+                pieces.push(state.board[x][y]);
+            }
+        }
+    }
+    let possible_slides = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+    let possible_jumps = [[2, 2], [2, -2], [-2, 2], [-2, -2]];
+    let possible_moves = [];
+    // 2 loops
+    // 1: prefer capture
+    for(let i = 0; i < pieces.len; i++){
+        let piece = pieces[i];
+        for(let j = 0; j < possible_jumps.len; j++){
+            if(checkJump(state, piece, piece.x + possible_jumps[j][0], piece.y + possible_jumps[j][1])){
+                possible_moves.push([piece, piece.x + possible_jumps[j][0], piece.y + possible_jumps[j][1]])
+            }
+        }
+    }
+    if(possible_moves.length){
+        let moveTuple = possible_moves[Math.floor(Math.random() * possible_moves.length)];
+        let capture = move(state, moveTuple[0], moveTuple[1], moveTuple[2]);
+        return capture > 0;
+    }
+    possible_moves = [];
+    // 2: random directmove
+    for(let i = 0; i < pieces.len; i++){
+        let piece = pieces[i];
+        for(let j = 0; j < possible_slides.len; j++){
+            if(checkDirectMove(state, piece, piece.x + possible_slides[j][0], piece.y + possible_slides[j][1])){
+                possible_moves.push([piece, piece.x + possible_slides[j][0], piece.y + possible_slides[j][1]])
+            }
+        }
+    }
+    if(possible_moves.length){
+        let moveTuple = possible_moves[Math.floor(Math.random() * possible_moves.length)];
+        let capture = move(state, moveTuple[0], moveTuple[1], moveTuple[2]);
+        if(capture > 0){
+            aiMove(state);
+        }
+        return capture > 0;
+    }
 }
 
 // instantiate a new game
@@ -404,18 +448,19 @@ async function handle_move_piece(req, res){
         res.send(new Success("Game concluded."));
         return;
     }
-    if(!returned){
+    if(returned){
         // true value means it's still our turn because we jumped
         return;
     }
-    // ai move
-    aiMove(state);
-    // check victory
-    if(autoVictory(state)){
-        saveGameState(state)
-        res.send(new Success("Game concluded."));
-        return;
-    }
+    let captured = false;
+    do{
+        captured = aiMove(state);
+        if(autoVictory(state)){
+            saveGameState(state);
+            res.send(new Success("Game concluded."));
+            return;
+        }
+    } while(captured)
     saveGameState(state)
     res.send(new Success("Move complete; update pending."));
 }
