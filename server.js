@@ -250,12 +250,47 @@ function pieceAt(state, x, y){
 
 // returns undefined or capturedpiece for a jump. only direct 1-jumps!
 function checkJump(state, piece, newx, newy){
-
+    let x = piece.x
+    let y = piece.y
+    if(outOfBounds(newx, newy)){
+        return undefined;
+    }
+    if(Math.abs(newx - x) != 2 || Math.abs(newy - y) != 2){
+        return undefined;
+    }
+    if(!piece.king && ((piece.owner && (newy < piece.y)) || (!piece.owner && (newy > piece.y)))){
+        return undefined;
+    }
+    // check middle piece
+    let midx = (newx - x) / 2 + x;
+    let midy = (newy - y) / 2 + y;
+    let mid = pieceAt(state, midx, midy);
+    if(mid == undefined){
+        return undefined;
+    }
+    if(mid.owner == piece.owner){
+        return undefined;
+    }
+    return mid;
 }
 
 // returns true/false for a direct move
 function checkDirectMove(state, piece, newx, newy){
-    
+    if(outOfBounds(newx, newy)){
+        return false;
+    }
+    if(!(Math.abs(piece.x - newx) == 1) || !(Math.abs(piece.y - newy) == 1)){
+        return false;
+    }
+    if(!piece.king && ((piece.owner && (newy < piece.y)) || (!piece.owner && (newy > piece.y)))){
+        return false;
+    }
+    return true;
+}
+
+// returns if a location is out of bounds
+function outOfBounds(x, y){
+    return x < 0 || y < 0 || x > 7 || y > 7;
 }
 
 // moves a piece capturing all pieces along the way. returns false for fail, returns number of captures otherwise.
@@ -295,6 +330,7 @@ async function get_state_from_request(req){
     return await GameStateModel.findOne({_id: stateid});
 }
 
+// converts coordinates too because the actual board is 0 indexed as in most programming languages
 async function handle_move_piece(req, res){
     // get state
     let state = get_state_from_request(req);
@@ -303,7 +339,7 @@ async function handle_move_piece(req, res){
         return;
     }
     // move piece
-    if(!user_move(state, req.body.oldx, req.body.oldy, req.body.newx, req.body.newy)){
+    if(!user_move(state, req.body.oldx - 1, req.body.oldy - 1, req.body.newx - 1, req.body.newy - 1)){
         res.send(new Fail("Invalid move."));
         return;
     }
