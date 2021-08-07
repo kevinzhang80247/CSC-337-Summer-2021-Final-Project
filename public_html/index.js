@@ -33,7 +33,7 @@ async function OnLogin(){
   console.debug("rerendering for login");
   CloseModal();
   await UpdateState();
-  RenderUserData();
+  await RenderUserData();
   RenderScores();
   RenderBoard();
   RenderStatus();
@@ -43,6 +43,7 @@ async function OnLogin(){
 async function OnMove(){
   console.debug("rerendering for movement");
   await UpdateState();
+  await RenderUserData();
   RenderBoard();
   RenderScores();
   RenderStatus();
@@ -58,9 +59,9 @@ function HookButtons(){
   $('#newGameButton').on('click', RequestNewGame);
 }
 
-function RenderUserData(){
+async function RenderUserData(){
   console.debug("rendering userdata");
-  $.ajax({
+  await $.ajax({
     type: "GET",
     url: server + "/site_api/session",
     xhrFields:{
@@ -100,7 +101,15 @@ function RenderScores(){
     $('#scoreRender').html("You must be logged in to view your top scores!");
   }
   else{
-    
+    let parent = document.getElementById('scoreRender');
+    while(parent.firstChild){
+      parent.removeChild(parent.lastChild);
+    }
+    for(let i = 0; i < sessionData.scores.length; i++){
+      let element = document.createElement('li');
+      element.innerText = "" + sessionData.scores[i] > 0? sessionData.scores[i] : "0";
+      parent.appendChild(element);
+    }
   }
 }
 

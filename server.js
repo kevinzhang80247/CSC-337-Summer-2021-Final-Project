@@ -645,18 +645,6 @@ server.post("/site_api/login", (req, res) =>{
     });
 });
 
-// GET: high scores for ourselves.
-server.get("/site_api/scoreboard", (req, res) => {
-    const max = 5;     // default maximum number of users to get
-    if(req.session.username == undefined){
-        res.send(new Fail("Not logged in."));
-        return;
-    }
-    UserModel.findOne({username: username, password: password}).then((user) => {
-        
-    })
-})
-
 // POST: account creation
 server.post("/site_api/register", (req, res) =>{
     let username = req.body.username;
