@@ -61,7 +61,7 @@ function GameState(IsFinished, GameBoard, PlayerScore, ComputerScore, Winner, La
     this.computerScore = ComputerScore;
     this.winner = Winner;
     this.lastAction = LastAction;
-    this.id = _id;
+    this._id = _id;
     this.lastMovedPiece = lastmovedpiece
 }
 
@@ -72,6 +72,7 @@ function SessionState(Username){
     else{
         this.loggedIn = true;
         this.userName = Username;
+        this.scores = [];
     }
 }
 
@@ -169,7 +170,7 @@ const UserSchema = new mongoose.Schema({
 
 const GameStateSchema = new mongoose.Schema({
     board: mongoose.Schema.Types.Mixed,
-    finished: mongoose.Schema.Types.Boolean,
+    isFinished: mongoose.Schema.Types.Mixed,
     playerScore: mongoose.Schema.Types.Number,
     computerScore: mongoose.Schema.Types.Number,
     winner: mongoose.Schema.Types.Mixed,
@@ -278,14 +279,52 @@ function checkVictory(state){
 }
 
 // automatic victory check function
-function autoVictory(state){
+function autoVictory(state, username){
     let returned = checkVictory(state);
     if(returned != null){
         state.winner = returned;
         state.isFinished = true;
         state.lastAction = state.winner? "You won!" : "You lost!";
+        scoreInject(username, state.playerScore);
     }
     return returned != null;
+}
+
+// get scores list for a user
+async function getScores(username){
+    let user = await UserModel.findOne({username : username}).exec();
+    if(!user){
+        return [0, 0, 0, 0, 0];
+    }
+    let scores = [];
+    scores.length = 5;
+    for(let i = 0; i < user.scores.length; i++){
+        scores[i] = user.scores[i];
+        if(i == 4){
+            break;
+        }
+    }
+    return scores;
+}
+
+// inject scores for a user
+async function scoreInject(username, score){
+    if(username == undefined || !username.length){
+        return;
+    }
+    if(score == 0){
+        return;
+    }
+    let user = await UserModel.findOne({username: username}).exec();
+    if(!user){
+        return;
+    }
+    user.scores.push(score);
+    user.scores.sort();
+    if(user.scores.length > 5){
+        user.scores.length = 5;
+    }
+    UserModel.updateOne({username: username}, {scores: user.scores}).exec();
 }
 
 // user move function
@@ -451,32 +490,49 @@ function king(piece){
     piece.king = true;
 }
 
+async function get_state_from_id(id){
+    console.debug("Fetching state with ID " + id);
+    let state = await GameStateModel.findOne({_id: id}).exec();
+    console.debug("Found state " + JSON.stringify(state));
+    return state;
+}
+
 async function get_state_from_request(req){
     if(req.session.username == undefined){
-        return req.session.gameState;
+        console.debug("Returning anonymous session state: not logged in.");
+        return get_state_from_id(req.session.gameid);
     }
     let user = await UserModel.findOne({username: req.session.username});
     if(user == undefined){
-        return req.session.gameState;
+        console.debug("Returning anonymous session state: no user found.");
+        return get_state_from_id(req.session.gameid);
     }
     let stateid = user.activegame;
     if(stateid == undefined){
-        return req.session.gameState;
+        console.debug("Returning anonymous session state: no active gamestate.");
+        return get_state_from_id(req.session.gameid);
     }
-    return await GameStateModel.findOne({_id: stateid});
+    return get_state_from_id(stateid);
 }
 
 // converts coordinates too because the actual board is 0 indexed as in most programming languages
 async function handle_move_piece(req, res){
     // get state
     let state = await get_state_from_request(req);
-    if(!state || state.isFinished == undefined){
+    if(!state){
+        console.debug("Couldn't move: No state - " + JSON.stringify(state));
         res.send(new Fail("No gamestate detected; Start a new game."));
+        return;
+    }
+    if(state.isFinished == true){
+        console.debug("Couldn't move: game finished");
+        res.send(new Fail("The game already ended! Start a new game to play more."));
         return;
     }
     // move piece
     let returned = user_move(state, req.body.oldx - 1, req.body.oldy - 1, req.body.newx - 1, req.body.newy - 1)
     if(returned == undefined){
+        console.debug("Couldn't move: invalid move.");
         res.send(new Fail("Invalid move."));
         return;
     }
@@ -484,8 +540,9 @@ async function handle_move_piece(req, res){
         state.lastAction = "You moved.";
     }
     // check victory
-    if(autoVictory(state)){
-        saveGameState(state)
+    if(autoVictory(state, req.session.username)){
+        console.debug("Player won.");
+        await saveGameState(state)
         res.send(new Success("Game concluded."));
         return;
     }
@@ -493,7 +550,7 @@ async function handle_move_piece(req, res){
         console.debug("player captured a piece, ignoring aimove");
         state.lastAction += " You capture one of the opponent's pieces.";
         if(returned != 3){  // no double move on king
-            saveGameState(state);
+            await saveGameState(state);
             res.send(new Success("Player captures a piece."));
             // true value means it's still our turn because we jumped
             return;
@@ -506,8 +563,9 @@ async function handle_move_piece(req, res){
         if(captured == 1 || captured == 3){
             hasCaptured++;
         }
-        if(autoVictory(state)){
-            saveGameState(state);
+        if(autoVictory(state, req.session.username)){
+            console.debug("Computer won..");
+            await saveGameState(state);
             res.send(new Success("Game concluded."));
             return;
         }
@@ -515,7 +573,8 @@ async function handle_move_piece(req, res){
     if(hasCaptured > 0){
         state.lastAction += " The opponent captures " + hasCaptured + " of your piece(s)!";
     }
-    saveGameState(state)
+    console.debug("Move complete; saving data and sending client success packet.");
+    await saveGameState(state)
     res.send(new Success("Move complete; update pending."));
 }
 
@@ -525,17 +584,22 @@ async function handle_new_game(req, res){
     state.lastAction = "Game started!";
     await saveGameState(state);
     // save as necessary
-    req.session.gameState = state;
+    req.session.gameid = state._id;
     req.session.save();
     if(req.session.username){
-        console.log("updating existing user " + req.session.username + " activegame to " + state.id);
-        await UserModel.updateOne({username: req.session.username}, {activegame: state.id});
+        console.log("updating existing user " + req.session.username + " activegame to " + state._id);
+        await UserModel.updateOne({username: req.session.username}, {activegame: state._id});
     }
     res.send(new Success("New game started."));
 }
 
 async function saveGameState(state){
-    GameStateModel.updateOne({_id: state.id}, {isFinished: state.isFinished, board: state.board, playerScore: state.playerScore, computerScore: state.computerScore, winner: state.winner, lastAction: state.lastAction});
+    console.debug("Saving state: " + JSON.stringify(state));
+    await GameStateModel.updateOne({_id: state._id}, {isFinished: state.isFinished, board: state.board, playerScore: state.playerScore, computerScore: state.computerScore, winner: state.winner, lastAction: state.lastAction}, (err, res) => {
+        if(err){
+            console.debug("ERROR DURING SAVE: " + err);
+        }
+    });
 }
 
 //// ----- express setup and bindings -----
@@ -548,31 +612,20 @@ server.get("/site_api/session", (req, res) => {
         console.log("Responding with undefined.");
     }
     else{
-        res.send(new SessionState(req.session.username));
-        console.log("Responding with " + req.session.username + ".");
+        let state = new SessionState(req.session.username)
+        getScores(req.session.username).then((v) => {
+            state.scores = v;
+            res.send(state);
+            console.log("Responding with " + req.session.username + ".");
+        });
     }
 })
 
 // GET: game state
 server.get("/site_api/game", (req, res) => {
-    if(req.session.username == undefined){
-        res.send(req.session.gameState);
-    }
-    else{
-        UserModel.findOne({username: req.session.username}).then((user) => {
-            if(user == undefined || user.activegame == undefined){
-                res.send(undefined);
-                return;
-            }
-            gameid = user.activegame;
-            console.log("getting activegame: " + gameid);
-            GameStateModel.findOne({_id: gameid}).then((game) => {
-                res.send(game);
-                console.log("sent gamestate: " + JSON.stringify(game));
-                req.session.gameState = game;
-            });
-        });
-    }
+    get_state_from_request(req).then((v) => {
+        res.send(v);
+    });
 })
 
 // POST: attempt login
