@@ -7,7 +7,7 @@
 //// ----- config -----
 // config is an object. access via config['key'];
 const config = {
-    port: 6192,
+    port: 7199,
     mongodb: "mongodb://127.0.0.1:27017/CSC337Final"
 };
 

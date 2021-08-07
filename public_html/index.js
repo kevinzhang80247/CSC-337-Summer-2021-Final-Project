@@ -6,7 +6,7 @@ Due: 8/6/2021
 Purpose:  See server.js for details.
 */
 
-const server = 'http://localhost:6192';
+const server = 'http://localhost:7199';
 
 let gameState = undefined;
 let sessionData = undefined;
